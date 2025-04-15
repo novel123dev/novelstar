@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Aplikasi Novel Sederhana</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7fc;
+      color: #333;
+    }
+    h2, h3, h4 {
+      color: #2c3e50;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .hidden {
+      display: none;
+    }
+    textarea, input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    textarea {
+      height: 150px;
+    }
+    .novel-item {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .novel-item:hover {
+      background-color: #f9f9f9;
+    }
+    .label-jual {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    .button {
+      background-color: #3498db;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    .button:hover {
+      background-color: #2980b9;
+    }
+    .button-secondary {
+      background-color: #e74c3c;
+    }
+    .button-secondary:hover {
+      background-color: #c0392b;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .confirm-container {
+      background-color: #ecf0f1;
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    .confirm-container p {
+      font-size: 16px;
+    }
+    .form-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .form-label {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .back-button {
+      background-color: #95a5a6;
+      color: white;
+      padding: 12px;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .back-button:hover {
+      background-color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loginSection" class="container">
+    <h2>Login ke Aplikasi Novel</h2>
+    <label class="form-label">Nama:</label><br>
+    <input type="text" id="nama"><br><br>
+    <label class="form-label">Kode Akses (Gunakan: ABC123):</label><br>
+    <input type="text" id="kode"><br><br>
+    <button class="button" onclick="login()">Login</button>
+  </div>
+
+  <div id="dashboardSection" class="container hidden">
+    <h2 id="welcome"></h2>
+    <button class="button" onclick="showBuatNovel()">✍️ Buat Novel</button>
+    <button class="button" onclick="showLihatNovel()">📖 Lihat Novel</button>
+    <button class="button" onclick="showJualNovel()">💰 Jual Novel</button>
+    <button class="button-secondary" onclick="logout()">🚪 Logout</button>
+  </div>
+
+  <div id="buatNovelSection" class="container hidden">
+    <h3 class="form-title">Buat Novel Baru</h3>
+    <label class="form-label">Judul:</label><br>
+    <input type="text" id="judul"><br><br>
+    <label class="form-label">Isi:</label><br>
+    <textarea id="isi"></textarea><br><br>
+    <button class="button" onclick="simpanNovel()">Simpan Novel</button>
+    <button class="back-button" onclick="backToDashboard()">Kembali</button>
+  </div>
+
+  <div id="lihatNovelSection" class="container hidden">
+    <h3 class="form-title">Daftar Novel</h3>
+    <div id="daftarNovel"></div>
+    <button class="back-button" onclick="backToDashboard()">Kembali</button>
+  </div>
+
+  <div id="jualNovelSection" class="container hidden">
+    <h3 class="form-title">Jual Novel</h3>
+    <label class="form-label">Pilih Novel:</label><br>
+    <select id="pilihNovel"></select><br><br>
+    <label class="form-label">No. Dana:</label><br>
+    <input type="text" id="noDana"><br><br>
+    <label class="form-label">Harga (Rp):</label><br>
+    <input type="number" id="harga"><br><br>
+    <button class="button" onclick="jualNovel()">Jual</button>
+    <button class="back-button" onclick="backToDashboard()">Kembali</button>
+  </div>
+
+  <div id="konfirmasiPenjualan" class="container hidden confirm-container">
+    <h4>Konfirmasi Penjualan Novel</h4>
+    <p><strong>Judul Novel:</strong> <span id="judulNovelConfirm"></span></p>
+    <p><strong>No. Dana:</strong> <span id="noDanaConfirm"></span></p>
+    <p><strong>Harga:</strong> Rp <span id="hargaConfirm"></span></p>
+    <button class="button" onclick="konfirmasiJual()">Konfirmasi</button>
+    <button class="back-button" onclick="backToDashboard()">Batal</button>
+  </div>
+
+  <script>
+    const kodeValid = "ABC123";
+
+    function login() {
+      const nama = document.getElementById("nama").value.trim();
+      const kode = document.getElementById("kode").value.trim();
+
+      if (nama && kode === kodeValid) {
+        localStorage.setItem("username", nama);
+        showDashboard();
+      } else {
+        alert("Nama atau kode salah!");
+      }
+    }
+
+    function showDashboard() {
+      const user = localStorage.getItem("username");
+      if (user) {
+        document.getElementById("welcome").textContent = `Selamat datang, ${user}!`;
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("dashboardSection").classList.remove("hidden");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("username");
+      location.reload();
+    }
+
+    function showBuatNovel() {
+      hideAllSections();
+      document.getElementById("buatNovelSection").classList.remove("hidden");
+    }
+
+    function showLihatNovel() {
+      hideAllSections();
+      document.getElementById("lihatNovelSection").classList.remove("hidden");
+      tampilkanDaftarNovel();
+    }
+
+    function showJualNovel() {
+      hideAllSections();
+      document.getElementById("jualNovelSection").classList.remove("hidden");
+      tampilkanPilihanNovel();
+    }
+
+    function backToDashboard() {
+      hideAllSections();
+      document.getElementById("dashboardSection").classList.remove("hidden");
+    }
+
+    function hideAllSections() {
+      document.getElementById("buatNovelSection").classList.add("hidden");
+      document.getElementById("lihatNovelSection").classList.add("hidden");
+      document.getElementById("jualNovelSection").classList.add("hidden");
+      document.getElementById("konfirmasiPenjualan").classList.add("hidden");
+    }
+
+    function simpanNovel() {
+      const judul = document.getElementById("judul").value.trim();
+      const isi = document.getElementById("isi").value.trim();
+      if (!judul || !isi) {
+        alert("Harap isi semua kolom!");
+        return;
+      }
+
+      const novel = { judul, isi, dijual: false, harga: null, noDana: "" };
+      let koleksi = JSON.parse(localStorage.getItem("novelData")) || [];
+      koleksi.push(novel);
+      localStorage.setItem("novelData", JSON.stringify(koleksi));
+
+      document.getElementById("judul").value = "";
+      document.getElementById("isi").value = "";
+      alert("Novel berhasil disimpan!");
+      backToDashboard();
+    }
+
+    function tampilkanDaftarNovel() {
+      const daftarDiv = document.getElementById("daftarNovel");
+      daftarDiv.innerHTML = "";
+
+      const koleksi = JSON.parse(localStorage.getItem("novelData")) || [];
+
+      if (koleksi.length === 0) {
+        daftarDiv.innerHTML = "<p>Belum ada novel yang ditambahkan.</p>";
+        return;
+      }
+
+      koleksi.forEach((novel, index) => {
+        const item = document.createElement("div");
+        item.className = "novel-item";
+        let labelJual = novel.dijual ? `<div class="label-jual">[Dijual] Harga: Rp${novel.harga}</div>` : "";
+        item.innerHTML = `<strong>${novel.judul}</strong><br>${labelJual}<p>${novel.isi}</p>`;
+        daftarDiv.appendChild(item);
+      });
+    }
+
+    function tampilkanPilihanNovel() {
+      const select = document.getElementById("pilihNovel");
+      select.innerHTML = "";
+
+      const koleksi = JSON.parse(localStorage.getItem("novelData")) || [];
+
+      koleksi.forEach((novel, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.text = novel.judul;
+        select.appendChild(option);
+      });
+
+      if (koleksi.length === 0) {
+        const option = document.createElement("option");
+        option.text = "Belum ada novel";
+        option.disabled = true;
+        select.appendChild(option);
+      }
+    }
+
+    function jualNovel() {
+      const index = document.getElementById("pilihNovel").value;
+      const harga = parseInt(document.getElementById("harga").value);
+      const noDana = document.getElementById("noDana").value.trim();
+
+      if (isNaN(harga) || harga <= 0) {
+        alert("Harga tidak valid!");
+        return;
+      }
+
+      if (!noDana) {
+        alert("No. Dana harus diisi!");
+        return;
+      }
+
+      let koleksi = JSON.parse(localStorage.getItem("novelData")) || [];
+      const novel = koleksi[index];
+
+      // Tampilkan konfirmasi penjualan
+      document.getElementById("judulNovelConfirm").textContent = novel.judul;
+      document.getElementById("noDanaConfirm").textContent = noDana;
+      document.getElementById("hargaConfirm").textContent = harga.toLocaleString();
+
+      // Simpan informasi sementara untuk konfirmasi
+      koleksi[index].harga = harga;
+      koleksi[index].noDana = noDana;
+      koleksi[index].dijual = true;
+      localStorage.setItem("novelData", JSON.stringify(koleksi));
+
+      hideAllSections();
+      document.getElementById("konfirmasiPenjualan").classList.remove("hidden");
+    }
+
+    function konfirmasiJual() {
+      alert("Novel berhasil dijual!");
+      backToDashboard();
+    }
+
+    // Otomatis login jika sudah ada user
+    window.onload = () => {
+      const user = localStorage.getItem("username");
+      if (user) {
+        showDashboard();
+      }
+    };
+  </script>
+
+</body>
+</html>
